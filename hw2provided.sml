@@ -73,13 +73,14 @@ around 10 lines. *)
 
 type Full_Name = {first:string, middle:string, last:string}
 fun similar_names (subs,name) =
-    let fun aux (subs,acc) =
-	    case subs of
-		[] => acc
-	      | x::xs' => aux(xs',x::acc)
-    in
-	aux(get_substitutions2(subs,[first]), name)
-    end
+    case name of
+    {first=f,middle=m,last=l} => let fun aux (subs,acc) =
+					 case subs of
+					     [] => acc
+					   | x::xs' => aux(xs',x::acc)
+				 in
+				     aux(get_substitutions2(subs,first), [name])
+				 end
 		     
 (* you may assume that Num is always used with values 2, 3, ..., 10
    though it will not really come up *)
@@ -187,11 +188,12 @@ fun officiate (cs,ms,goal) =
 	    case ms of
 		[] => held
 	      | m:ms' => case m of
-			    discard_card => process_moves(cs,ms',remove_card(held,card,e))
+			    discard card => process_moves(cs,ms',remove_card(held,card,IllegalMove))
 			  | draw => case cs of
 					[] => held
 				      | c::_ => case sum_cards(c::held) > goal of
 						    true => c::held
-						  | false => process_moves(remove_cards(cs,c,e),ms',c::held)
+						  | false => process_moves(remove_cards(cs,c,IllegalMove),ms',c::held)
     in
-	score(process_moves(cs,ms,[]),goal)
+	score(process_moves(cs, ms, []), goal)
+    end
